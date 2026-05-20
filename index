@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NET CS">
+  <title>NET CS Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+    header{position:sticky;top:0;z-index:100;background:#161b22;border-bottom:1px solid #30363d;padding:12px 16px}
+    .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .header-title{font-size:17px;font-weight:700;color:#58a6ff}
+    .header-actions{display:flex;gap:6px;align-items:center}
+    .btn{padding:6px 12px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#e6edf3;cursor:pointer;font-size:13px;transition:all .2s}
+    .btn:hover{background:#30363d}
+    .btn.primary{background:#1f6feb;border-color:#1f6feb}
+    .btn.primary:hover{background:#388bfd}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .search-bar{width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:14px;margin-bottom:8px}
+    .search-bar:focus{outline:none;border-color:#58a6ff}
+    .overall-progress{display:flex;align-items:center;gap:10px}
+    .progress-bar{flex:1;height:6px;background:#21262d;border-radius:3px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#1f6feb,#58a6ff);border-radius:3px;transition:width .4s ease}
+    .progress-text{font-size:12px;color:#8b949e;white-space:nowrap}
+    main{padding:16px;max-width:800px;margin:0 auto}
+    .unit-card{background:#161b22;border:1px solid #30363d;border-radius:10px;margin-bottom:14px;overflow:hidden}
+    .unit-header{padding:13px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+    .unit-header:hover{background:#1c2128}
+    .unit-header-left{display:flex;align-items:center;gap:10px}
+    .unit-icon{font-size:18px}
+    .unit-title{font-size:14px;font-weight:600;line-height:1.3}
+    .unit-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px}
+    .unit-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#21262d;color:#8b949e;white-space:nowrap}
+    .unit-badge.complete{background:#1a4731;color:#56d364}
+    .unit-badge.inprogress{background:#1c2a3a;color:#58a6ff}
+    .chevron{color:#8b949e;transition:transform .2s;font-size:11px;margin-left:4px}
+    .unit-card.expanded .chevron{transform:rotate(90deg)}
+    .unit-pb{height:3px;background:#21262d}
+    .unit-pf{height:100%;background:linear-gradient(90deg,#1f6feb,#56d364);transition:width .4s ease}
+    .unit-body{display:none}
+    .unit-card.expanded .unit-body{display:block}
+    .section{border-top:1px solid #21262d}
+    .section-header{padding:9px 16px;font-size:12px;font-weight:600;color:#8b949e;background:#0d1117;display:flex;align-items:center;justify-content:space-between}
+    .section-check-all{font-size:11px;color:#58a6ff;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid #1f6feb;background:transparent}
+    .section-check-all:hover{background:#1c2a3a}
+    .topics-list{}
+    .topic-item{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 20px;border-bottom:1px solid #0d1117;cursor:pointer;transition:background .1s}
+    .topic-item:last-child{border-bottom:none}
+    .topic-item:hover{background:#1c2128}
+    .topic-item.hidden{display:none}
+    .topic-cb{width:17px;height:17px;border:2px solid #30363d;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+    .topic-item.done .topic-cb{background:#238636;border-color:#238636}
+    .ck{color:white;font-size:10px;display:none;font-weight:700}
+    .topic-item.done .ck{display:block}
+    .topic-name{font-size:13px;color:#c9d1d9;line-height:1.4}
+    .topic-item.done .topic-name{color:#484f58;text-decoration:line-through}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:22px;width:90%;max-width:400px}
+    .modal h2{font-size:15px;margin-bottom:14px;color:#e6edf3}
+    .modal label{display:block;font-size:12px;color:#8b949e;margin-bottom:5px;margin-top:12px}
+    .modal input{width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:14px}
+    .modal input:focus{outline:none;border-color:#58a6ff}
+    .modal-hint{font-size:11px;color:#8b949e;margin-top:8px;line-height:1.5}
+    .modal-hint code{background:#0d1117;padding:2px 5px;border-radius:3px;color:#79c0ff}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#161b22;border:1px solid #30363d;color:#e6edf3;padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+    .toast.show{opacity:1}
+    .toast.ok{border-color:#238636;color:#56d364}
+    .toast.err{border-color:#da3633;color:#f85149}
+    .section-count{color:#484f58;font-weight:400}
+    @media(max-width:600px){.unit-title{font-size:13px}main{padding:10px}.header-title{font-size:15px}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="header-title">📚 NET CS Tracker</div>
+    <div class="header-actions">
+      <button class="btn" id="sync-btn" onclick="syncNow()">🔄 Sync</button>
+      <button class="btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+  <input type="text" class="search-bar" placeholder="🔍 Search topics..." oninput="filterTopics(this.value)">
+  <div class="overall-progress">
+    <div class="progress-bar"><div class="progress-fill" id="overall-fill" style="width:0%"></div></div>
+    <span class="progress-text" id="overall-text">0 / 0 (0%)</span>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div class="modal-overlay" id="settings-modal" onclick="maybeClose(event)">
+  <div class="modal">
+    <h2>⚙️ Sync Settings</h2>
+    <label>Server IP : Port (same WiFi)</label>
+    <input type="text" id="server-ip" placeholder="192.168.1.100:3000">
+    <div class="modal-hint">
+      1. Run <code>node server.js</code> on your laptop<br>
+      2. It will print the IP address to use<br>
+      3. Paste it here — data merges as union<br>
+      4. Both devices must be on same WiFi
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeSettings()">Cancel</button>
+      <button class="btn primary" onclick="saveSettings()">Save & Sync</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+// FULL SYLLABUS DATA — UGC NET CS Code 87
+// ================================================================
+const SYLLABUS = [
+  {id:'u1',title:'Unit 1: Discrete Structures and Optimization',icon:'🔢',sections:[
+    {id:'u1s1',title:'Mathematical Logic',topics:[
+      {id:'u1s1t1',name:'Propositional and Predicate Logic'},
+      {id:'u1s1t2',name:'Propositional Equivalences'},
+      {id:'u1s1t3',name:'Normal Forms'},
+      {id:'u1s1t4',name:'Predicates and Quantifiers'},
+      {id:'u1s1t5',name:'Nested Quantifiers'},
+      {id:'u1s1t6',name:'Rules of Inference'},
+    ]},
+    {id:'u1s2',title:'Sets and Relations',topics:[
+      {id:'u1s2t1',name:'Set Operations'},
+      {id:'u1s2t2',name:'Representation and Properties of Relations'},
+      {id:'u1s2t3',name:'Equivalence Relations'},
+      {id:'u1s2t4',name:'Partially Ordering'},
+    ]},
+    {id:'u1s3',title:'Counting, Mathematical Induction and Discrete Probability',topics:[
+      {id:'u1s3t1',name:'Basics of Counting'},
+      {id:'u1s3t2',name:'Pigeonhole Principle'},
+      {id:'u1s3t3',name:'Permutations and Combinations'},
+      {id:'u1s3t4',name:'Inclusion-Exclusion Principle'},
+      {id:'u1s3t5',name:'Mathematical Induction'},
+      {id:'u1s3t6',name:'Probability'},
+      {id:'u1s3t7',name:"Bayes' Theorem"},
+    ]},
+    {id:'u1s4',title:'Group Theory',topics:[
+      {id:'u1s4t1',name:'Groups'},
+      {id:'u1s4t2',name:'Subgroups'},
+      {id:'u1s4t3',name:'Semi Groups'},
+      {id:'u1s4t4',name:'Product and Quotients of Algebraic Structures'},
+      {id:'u1s4t5',name:'Isomorphism'},
+      {id:'u1s4t6',name:'Homomorphism'},
+      {id:'u1s4t7',name:'Automorphism'},
+      {id:'u1s4t8',name:'Rings'},
+      {id:'u1s4t9',name:'Integral Domains'},
+      {id:'u1s4t10',name:'Fields'},
+      {id:'u1s4t11',name:'Applications of Group Theory'},
+    ]},
+    {id:'u1s5',title:'Graph Theory',topics:[
+      {id:'u1s5t1',name:'Simple Graph'},
+      {id:'u1s5t2',name:'Multigraph'},
+      {id:'u1s5t3',name:'Weighted Graph'},
+      {id:'u1s5t4',name:'Paths and Circuits'},
+      {id:'u1s5t5',name:'Shortest Paths in Weighted Graphs'},
+      {id:'u1s5t6',name:'Eulerian Paths and Circuits'},
+      {id:'u1s5t7',name:'Hamiltonian Paths and Circuits'},
+      {id:'u1s5t8',name:'Planar Graph'},
+      {id:'u1s5t9',name:'Graph Coloring'},
+      {id:'u1s5t10',name:'Bipartite Graphs'},
+      {id:'u1s5t11',name:'Trees and Rooted Trees'},
+      {id:'u1s5t12',name:'Prefix Codes'},
+      {id:'u1s5t13',name:'Tree Traversals'},
+      {id:'u1s5t14',name:'Spanning Trees and Cut-Sets'},
+    ]},
+    {id:'u1s6',title:'Boolean Algebra',topics:[
+      {id:'u1s6t1',name:'Boolean Functions and its Representation'},
+      {id:'u1s6t2',name:'Simplifications of Boolean Functions'},
+    ]},
+    {id:'u1s7',title:'Optimization',topics:[
+      {id:'u1s7t1',name:'Linear Programming: Mathematical Model'},
+      {id:'u1s7t2',name:'Graphical Solution'},
+      {id:'u1s7t3',name:'Simplex and Dual Simplex Method'},
+      {id:'u1s7t4',name:'Sensitivity Analysis'},
+      {id:'u1s7t5',name:'Integer Programming'},
+      {id:'u1s7t6',name:'Transportation and Assignment Models'},
+      {id:'u1s7t7',name:'PERT-CPM: Diagram Representation'},
+      {id:'u1s7t8',name:'Critical Path Calculations'},
+      {id:'u1s7t9',name:'Resource Levelling'},
+      {id:'u1s7t10',name:'Cost Consideration in Project Scheduling'},
+    ]},
+  ]},
+  {id:'u2',title:'Unit 2: Computer System Architecture',icon:'💻',sections:[
+    {id:'u2s1',title:'Digital Logic Circuits and Components',topics:[
+      {id:'u2s1t1',name:'Digital Computers'},
+      {id:'u2s1t2',name:'Logic Gates'},
+      {id:'u2s1t3',name:'Boolean Algebra'},
+      {id:'u2s1t4',name:'Map Simplifications'},
+      {id:'u2s1t5',name:'Combinational Circuits'},
+      {id:'u2s1t6',name:'Flip-Flops'},
+      {id:'u2s1t7',name:'Sequential Circuits'},
+      {id:'u2s1t8',name:'Integrated Circuits'},
+      {id:'u2s1t9',name:'Decoders'},
+      {id:'u2s1t10',name:'Multiplexers'},
+      {id:'u2s1t11',name:'Registers and Counters'},
+      {id:'u2s1t12',name:'Memory Unit'},
+    ]},
+    {id:'u2s2',title:'Data Representation',topics:[
+      {id:'u2s2t1',name:'Data Types'},
+      {id:'u2s2t2',name:'Number Systems and Conversion'},
+      {id:'u2s2t3',name:'Complements'},
+      {id:'u2s2t4',name:'Fixed Point Representation'},
+      {id:'u2s2t5',name:'Floating Point Representation'},
+      {id:'u2s2t6',name:'Error Detection Codes'},
+      {id:'u2s2t7',name:'Computer Arithmetic: Addition, Subtraction, Multiplication and Division Algorithms'},
+    ]},
+    {id:'u2s3',title:'Register Transfer and Microoperations',topics:[
+      {id:'u2s3t1',name:'Register Transfer Language'},
+      {id:'u2s3t2',name:'Bus and Memory Transfers'},
+      {id:'u2s3t3',name:'Arithmetic Microoperations'},
+      {id:'u2s3t4',name:'Logic Microoperations'},
+      {id:'u2s3t5',name:'Shift Microoperations'},
+    ]},
+    {id:'u2s4',title:'Basic Computer Organization and Design',topics:[
+      {id:'u2s4t1',name:'Stored Program Organization and Instruction Codes'},
+      {id:'u2s4t2',name:'Computer Registers'},
+      {id:'u2s4t3',name:'Computer Instructions'},
+      {id:'u2s4t4',name:'Timing and Control'},
+      {id:'u2s4t5',name:'Instruction Cycle'},
+      {id:'u2s4t6',name:'Memory-Reference Instructions'},
+      {id:'u2s4t7',name:'Input-Output'},
+      {id:'u2s4t8',name:'Interrupt'},
+    ]},
+    {id:'u2s5',title:'Programming the Basic Computer',topics:[
+      {id:'u2s5t1',name:'Machine Language'},
+      {id:'u2s5t2',name:'Assembly Language'},
+      {id:'u2s5t3',name:'Assembler'},
+      {id:'u2s5t4',name:'Program Loops'},
+      {id:'u2s5t5',name:'Subroutines'},
+      {id:'u2s5t6',name:'Input-Output Programming'},
+    ]},
+    {id:'u2s6',title:'Microprogrammed Control',topics:[
+      {id:'u2s6t1',name:'Control Memory'},
+      {id:'u2s6t2',name:'Address Sequencing'},
+      {id:'u2s6t3',name:'Design of Control Unit'},
+    ]},
+    {id:'u2s7',title:'Central Processing Unit',topics:[
+      {id:'u2s7t1',name:'General Register Organization'},
+      {id:'u2s7t2',name:'Stack Organization'},
+      {id:'u2s7t3',name:'Instruction Formats'},
+      {id:'u2s7t4',name:'Addressing Modes'},
+      {id:'u2s7t5',name:'RISC Computer'},
+      {id:'u2s7t6',name:'CISC Computer'},
+    ]},
+    {id:'u2s8',title:'Pipeline and Vector Processing',topics:[
+      {id:'u2s8t1',name:'Parallel Processing'},
+      {id:'u2s8t2',name:'Pipelining'},
+      {id:'u2s8t3',name:'Arithmetic Pipeline'},
+      {id:'u2s8t4',name:'Instruction Pipeline'},
+      {id:'u2s8t5',name:'Vector Processing'},
+      {id:'u2s8t6',name:'Array Processors'},
+    ]},
+    {id:'u2s9',title:'Input-Output Organization',topics:[
+      {id:'u2s9t1',name:'Peripheral Devices'},
+      {id:'u2s9t2',name:'Input-Output Interface'},
+      {id:'u2s9t3',name:'Asynchronous Data Transfer'},
+      {id:'u2s9t4',name:'Modes of Transfer'},
+      {id:'u2s9t5',name:'Priority Interrupt'},
+      {id:'u2s9t6',name:'DMA'},
+      {id:'u2s9t7',name:'Serial Communication'},
+    ]},
+    {id:'u2s10',title:'Memory Hierarchy',topics:[
+      {id:'u2s10t1',name:'Main Memory'},
+      {id:'u2s10t2',name:'Auxiliary Memory'},
+      {id:'u2s10t3',name:'Associative Memory'},
+      {id:'u2s10t4',name:'Cache Memory'},
+      {id:'u2s10t5',name:'Virtual Memory'},
+      {id:'u2s10t6',name:'Memory Management Hardware'},
+    ]},
+    {id:'u2s11',title:'Multiprocessors',topics:[
+      {id:'u2s11t1',name:'Characteristics of Multiprocessors'},
+      {id:'u2s11t2',name:'Interconnection Structures'},
+      {id:'u2s11t3',name:'Interprocessor Arbitration'},
+      {id:'u2s11t4',name:'Interprocessor Communication and Synchronization'},
+      {id:'u2s11t5',name:'Cache Coherence'},
+      {id:'u2s11t6',name:'Multicore Processors'},
+    ]},
+  ]},
+  {id:'u3',title:'Unit 3: Programming Languages and Computer Graphics',icon:'🖥️',sections:[
+    {id:'u3s1',title:'Language Design and Translation Issues',topics:[
+      {id:'u3s1t1',name:'Programming Language Concepts'},
+      {id:'u3s1t2',name:'Paradigms and Models'},
+      {id:'u3s1t3',name:'Programming Environments'},
+      {id:'u3s1t4',name:'Virtual Computers and Binding Times'},
+      {id:'u3s1t5',name:'Programming Language Syntax'},
+      {id:'u3s1t6',name:'Stages in Translation'},
+      {id:'u3s1t7',name:'Formal Transition Models'},
+    ]},
+    {id:'u3s2',title:'Elementary Data Types',topics:[
+      {id:'u3s2t1',name:'Properties of Types and Objects'},
+      {id:'u3s2t2',name:'Scalar and Composite Data Types'},
+    ]},
+    {id:'u3s3',title:'Programming in C',topics:[
+      {id:'u3s3t1',name:'Tokens'},
+      {id:'u3s3t2',name:'Identifiers'},
+      {id:'u3s3t3',name:'Data Types'},
+      {id:'u3s3t4',name:'Sequence Control'},
+      {id:'u3s3t5',name:'Subprogram Control'},
+      {id:'u3s3t6',name:'Arrays'},
+      {id:'u3s3t7',name:'Structures'},
+      {id:'u3s3t8',name:'Union'},
+      {id:'u3s3t9',name:'String'},
+      {id:'u3s3t10',name:'Pointers'},
+      {id:'u3s3t11',name:'Functions'},
+      {id:'u3s3t12',name:'File Handling'},
+      {id:'u3s3t13',name:'Command Line Arguments'},
+      {id:'u3s3t14',name:'Preprocessors'},
+    ]},
+    {id:'u3s4',title:'Object Oriented Programming',topics:[
+      {id:'u3s4t1',name:'Class'},
+      {id:'u3s4t2',name:'Object'},
+      {id:'u3s4t3',name:'Instantiation'},
+      {id:'u3s4t4',name:'Inheritance'},
+      {id:'u3s4t5',name:'Encapsulation'},
+      {id:'u3s4t6',name:'Abstract Class'},
+      {id:'u3s4t7',name:'Polymorphism'},
+    ]},
+    {id:'u3s5',title:'Programming in C++',topics:[
+      {id:'u3s5t1',name:'Tokens'},
+      {id:'u3s5t2',name:'Identifiers'},
+      {id:'u3s5t3',name:'Variables and Constants'},
+      {id:'u3s5t4',name:'Data Types'},
+      {id:'u3s5t5',name:'Operators'},
+      {id:'u3s5t6',name:'Control Statements'},
+      {id:'u3s5t7',name:'Functions and Parameter Passing'},
+      {id:'u3s5t8',name:'Virtual Functions'},
+      {id:'u3s5t9',name:'Class and Objects'},
+      {id:'u3s5t10',name:'Constructors and Destructors'},
+      {id:'u3s5t11',name:'Overloading'},
+      {id:'u3s5t12',name:'Inheritance'},
+      {id:'u3s5t13',name:'Templates'},
+      {id:'u3s5t14',name:'Exception and Event Handling'},
+      {id:'u3s5t15',name:'Streams and Files'},
+      {id:'u3s5t16',name:'Multifile Programs'},
+    ]},
+    {id:'u3s6',title:'Web Programming',topics:[
+      {id:'u3s6t1',name:'HTML'},
+      {id:'u3s6t2',name:'DHTML'},
+      {id:'u3s6t3',name:'XML'},
+      {id:'u3s6t4',name:'Scripting'},
+      {id:'u3s6t5',name:'Java'},
+      {id:'u3s6t6',name:'Servlets'},
+      {id:'u3s6t7',name:'Applets'},
+    ]},
+    {id:'u3s7',title:'Computer Graphics',topics:[
+      {id:'u3s7t1',name:'Video-Display Devices'},
+      {id:'u3s7t2',name:'Raster-Scan and Random-Scan Systems'},
+      {id:'u3s7t3',name:'Graphics Monitors'},
+      {id:'u3s7t4',name:'Input Devices'},
+      {id:'u3s7t5',name:'Points and Lines'},
+      {id:'u3s7t6',name:'Line Drawing Algorithms'},
+      {id:'u3s7t7',name:'Mid-Point Circle and Ellipse Algorithms'},
+      {id:'u3s7t8',name:'Scan Line Polygon Fill Algorithm'},
+      {id:'u3s7t9',name:'Boundary-Fill and Flood-Fill'},
+    ]},
+    {id:'u3s8',title:'2-D Geometrical Transforms and Viewing',topics:[
+      {id:'u3s8t1',name:'Translation'},
+      {id:'u3s8t2',name:'Scaling'},
+      {id:'u3s8t3',name:'Rotation'},
+      {id:'u3s8t4',name:'Reflection and Shear Transformations'},
+      {id:'u3s8t5',name:'Matrix Representations and Homogeneous Coordinates'},
+      {id:'u3s8t6',name:'Composite Transforms'},
+      {id:'u3s8t7',name:'Transformations Between Coordinate Systems'},
+      {id:'u3s8t8',name:'Viewing Pipeline'},
+      {id:'u3s8t9',name:'Viewing Coordinate Reference Frame'},
+      {id:'u3s8t10',name:'Window to View-Port Coordinate Transformation'},
+      {id:'u3s8t11',name:'Viewing Functions'},
+      {id:'u3s8t12',name:'Line and Polygon Clipping Algorithms'},
+    ]},
+    {id:'u3s9',title:'3-D Object Representation, Geometric Transformations and Viewing',topics:[
+      {id:'u3s9t1',name:'Polygon Surfaces'},
+      {id:'u3s9t2',name:'Quadric Surfaces'},
+      {id:'u3s9t3',name:'Spline Representation'},
+      {id:'u3s9t4',name:'Bezier and B-Spline Curves'},
+      {id:'u3s9t5',name:'Bezier and B-Spline Surfaces'},
+      {id:'u3s9t6',name:'Illumination Models'},
+      {id:'u3s9t7',name:'Polygon Rendering Methods'},
+      {id:'u3s9t8',name:'Viewing Pipeline and Coordinates'},
+      {id:'u3s9t9',name:'General Projection Transforms and Clipping'},
+    ]},
+  ]},
+  {id:'u4',title:'Unit 4: Database Management Systems',icon:'🗄️',sections:[
+    {id:'u4s1',title:'Database System Concepts and Architecture',topics:[
+      {id:'u4s1t1',name:'Data Models'},
+      {id:'u4s1t2',name:'Schemas and Instances'},
+      {id:'u4s1t3',name:'Three-Schema Architecture and Data Independence'},
+      {id:'u4s1t4',name:'Database Languages and Interfaces'},
+      {id:'u4s1t5',name:'Centralized and Client/Server Architectures for DBMS'},
+    ]},
+    {id:'u4s2',title:'Data Modeling',topics:[
+      {id:'u4s2t1',name:'Entity-Relationship Diagram'},
+      {id:'u4s2t2',name:'Relational Model: Constraints, Languages, Design and Programming'},
+      {id:'u4s2t3',name:'Relational Database Schemas'},
+      {id:'u4s2t4',name:'Update Operations and Dealing with Constraint Violations'},
+      {id:'u4s2t5',name:'Relational Algebra and Relational Calculus'},
+      {id:'u4s2t6',name:'Codd Rules'},
+    ]},
+    {id:'u4s3',title:'SQL',topics:[
+      {id:'u4s3t1',name:'Data Definition and Data Types'},
+      {id:'u4s3t2',name:'Constraints'},
+      {id:'u4s3t3',name:'Queries'},
+      {id:'u4s3t4',name:'Insert, Delete and Update Statements'},
+      {id:'u4s3t5',name:'Views'},
+      {id:'u4s3t6',name:'Stored Procedures and Functions'},
+      {id:'u4s3t7',name:'Database Triggers'},
+      {id:'u4s3t8',name:'SQL Injection'},
+    ]},
+    {id:'u4s4',title:'Normalization for Relational Databases',topics:[
+      {id:'u4s4t1',name:'Functional Dependencies and Normalization'},
+      {id:'u4s4t2',name:'Algorithms for Query Processing and Optimization'},
+      {id:'u4s4t3',name:'Transaction Processing'},
+      {id:'u4s4t4',name:'Concurrency Control Techniques'},
+      {id:'u4s4t5',name:'Database Recovery Techniques'},
+      {id:'u4s4t6',name:'Object and Object-Relational Databases'},
+      {id:'u4s4t7',name:'Database Security and Authorization'},
+    ]},
+    {id:'u4s5',title:'Enhanced Data Models',topics:[
+      {id:'u4s5t1',name:'Temporal Database Concepts'},
+      {id:'u4s5t2',name:'Multimedia Databases'},
+      {id:'u4s5t3',name:'Deductive Databases'},
+      {id:'u4s5t4',name:'XML and Internet Databases'},
+      {id:'u4s5t5',name:'Mobile Databases'},
+      {id:'u4s5t6',name:'Geographic Information Systems'},
+      {id:'u4s5t7',name:'Genome Data Management'},
+      {id:'u4s5t8',name:'Distributed Databases and Client-Server Architectures'},
+    ]},
+    {id:'u4s6',title:'Data Warehousing and Data Mining',topics:[
+      {id:'u4s6t1',name:'Data Modeling for Data Warehouses'},
+      {id:'u4s6t2',name:'Concept Hierarchy'},
+      {id:'u4s6t3',name:'OLAP and OLTP'},
+      {id:'u4s6t4',name:'Association Rules'},
+      {id:'u4s6t5',name:'Classification'},
+      {id:'u4s6t6',name:'Clustering'},
+      {id:'u4s6t7',name:'Regression'},
+      {id:'u4s6t8',name:'Support Vector Machine'},
+      {id:'u4s6t9',name:'K-Nearest Neighbour'},
+      {id:'u4s6t10',name:'Hidden Markov Model'},
+      {id:'u4s6t11',name:'Summarization'},
+      {id:'u4s6t12',name:'Dependency Modeling'},
+      {id:'u4s6t13',name:'Link Analysis'},
+      {id:'u4s6t14',name:'Sequencing Analysis'},
+      {id:'u4s6t15',name:'Social Network Analysis'},
+    ]},
+    {id:'u4s7',title:'Big Data Systems',topics:[
+      {id:'u4s7t1',name:'Big Data Characteristics'},
+      {id:'u4s7t2',name:'Types of Big Data'},
+      {id:'u4s7t3',name:'Big Data Architecture'},
+      {id:'u4s7t4',name:'Introduction to Map-Reduce and Hadoop'},
+      {id:'u4s7t5',name:'Distributed File System'},
+      {id:'u4s7t6',name:'HDFS'},
+    ]},
+    {id:'u4s8',title:'NoSQL',topics:[
+      {id:'u4s8t1',name:'NoSQL and Query Optimization'},
+      {id:'u4s8t2',name:'Different NoSQL Products'},
+      {id:'u4s8t3',name:'Querying and Managing NoSQL'},
+      {id:'u4s8t4',name:'Indexing and Ordering Data Sets'},
+      {id:'u4s8t5',name:'NoSQL in Cloud'},
+    ]},
+  ]},
+  {id:'u5',title:'Unit 5: System Software and Operating System',icon:'⚙️',sections:[
+    {id:'u5s1',title:'System Software',topics:[
+      {id:'u5s1t1',name:'Machine, Assembly and High-Level Languages'},
+      {id:'u5s1t2',name:'Compilers and Interpreters'},
+      {id:'u5s1t3',name:'Loading, Linking and Relocation'},
+      {id:'u5s1t4',name:'Macros'},
+      {id:'u5s1t5',name:'Debuggers'},
+    ]},
+    {id:'u5s2',title:'Basics of Operating Systems',topics:[
+      {id:'u5s2t1',name:'Operating System Structure'},
+      {id:'u5s2t2',name:'Operations and Services'},
+      {id:'u5s2t3',name:'System Calls'},
+      {id:'u5s2t4',name:'Operating-System Design and Implementation'},
+      {id:'u5s2t5',name:'System Boot'},
+    ]},
+    {id:'u5s3',title:'Process Management',topics:[
+      {id:'u5s3t1',name:'Process Scheduling and Operations'},
+      {id:'u5s3t2',name:'Interprocess Communication'},
+      {id:'u5s3t3',name:'Communication in Client-Server Systems'},
+      {id:'u5s3t4',name:'Process Synchronization'},
+      {id:'u5s3t5',name:'Critical-Section Problem'},
+      {id:'u5s3t6',name:"Peterson's Solution"},
+      {id:'u5s3t7',name:'Semaphores'},
+    ]},
+    {id:'u5s4',title:'Threads',topics:[
+      {id:'u5s4t1',name:'Multicore Programming'},
+      {id:'u5s4t2',name:'Multithreading Models'},
+      {id:'u5s4t3',name:'Thread Libraries'},
+      {id:'u5s4t4',name:'Implicit Threading'},
+      {id:'u5s4t5',name:'Threading Issues'},
+    ]},
+    {id:'u5s5',title:'CPU Scheduling',topics:[
+      {id:'u5s5t1',name:'Scheduling Criteria and Algorithms'},
+      {id:'u5s5t2',name:'Thread Scheduling'},
+      {id:'u5s5t3',name:'Multiple-Processor Scheduling'},
+      {id:'u5s5t4',name:'Real-Time CPU Scheduling'},
+    ]},
+    {id:'u5s6',title:'Deadlocks',topics:[
+      {id:'u5s6t1',name:'Deadlock Characterization'},
+      {id:'u5s6t2',name:'Methods for Handling Deadlocks'},
+      {id:'u5s6t3',name:'Deadlock Prevention'},
+      {id:'u5s6t4',name:'Deadlock Avoidance'},
+      {id:'u5s6t5',name:'Deadlock Detection'},
+      {id:'u5s6t6',name:'Recovery from Deadlock'},
+    ]},
+    {id:'u5s7',title:'Memory Management',topics:[
+      {id:'u5s7t1',name:'Contiguous Memory Allocation'},
+      {id:'u5s7t2',name:'Swapping'},
+      {id:'u5s7t3',name:'Paging'},
+      {id:'u5s7t4',name:'Segmentation'},
+      {id:'u5s7t5',name:'Demand Paging'},
+      {id:'u5s7t6',name:'Page Replacement'},
+      {id:'u5s7t7',name:'Allocation of Frames'},
+      {id:'u5s7t8',name:'Thrashing'},
+      {id:'u5s7t9',name:'Memory-Mapped Files'},
+    ]},
+    {id:'u5s8',title:'Storage Management',topics:[
+      {id:'u5s8t1',name:'Mass-Storage Structure'},
+      {id:'u5s8t2',name:'Disk Structure'},
+      {id:'u5s8t3',name:'Scheduling and Management'},
+      {id:'u5s8t4',name:'RAID Structure'},
+    ]},
+    {id:'u5s9',title:'File and Input/Output Systems',topics:[
+      {id:'u5s9t1',name:'Access Methods'},
+      {id:'u5s9t2',name:'Directory and Disk Structure'},
+      {id:'u5s9t3',name:'File-System Mounting'},
+      {id:'u5s9t4',name:'File Sharing'},
+      {id:'u5s9t5',name:'File-System Structure and Implementation'},
+      {id:'u5s9t6',name:'Directory Implementation'},
+      {id:'u5s9t7',name:'Allocation Methods'},
+      {id:'u5s9t8',name:'Free-Space Management'},
+      {id:'u5s9t9',name:'Efficiency and Performance'},
+      {id:'u5s9t10',name:'Recovery'},
+      {id:'u5s9t11',name:'I/O Hardware'},
+      {id:'u5s9t12',name:'Application I/O Interface'},
+      {id:'u5s9t13',name:'Kernel I/O Subsystem'},
+      {id:'u5s9t14',name:'Transforming I/O Requests to Hardware Operations'},
+    ]},
+    {id:'u5s10',title:'Security',topics:[
+      {id:'u5s10t1',name:'Protection'},
+      {id:'u5s10t2',name:'Access Matrix'},
+      {id:'u5s10t3',name:'Access Control'},
+      {id:'u5s10t4',name:'Revocation of Access Rights'},
+      {id:'u5s10t5',name:'Program Threats'},
+      {id:'u5s10t6',name:'System and Network Threats'},
+      {id:'u5s10t7',name:'Cryptography as a Security Tool'},
+      {id:'u5s10t8',name:'User Authentication'},
+      {id:'u5s10t9',name:'Implementing Security Defenses'},
+    ]},
+    {id:'u5s11',title:'Virtual Machines',topics:[
+      {id:'u5s11t1',name:'Types of Virtual Machines and Implementations'},
+      {id:'u5s11t2',name:'Virtualization'},
+    ]},
+    {id:'u5s12',title:'Linux Operating Systems',topics:[
+      {id:'u5s12t1',name:'Design Principles'},
+      {id:'u5s12t2',name:'Kernel Modules'},
+      {id:'u5s12t3',name:'Process Management'},
+      {id:'u5s12t4',name:'Scheduling'},
+      {id:'u5s12t5',name:'Memory Management'},
+      {id:'u5s12t6',name:'File Systems'},
+      {id:'u5s12t7',name:'Input and Output'},
+      {id:'u5s12t8',name:'Interprocess Communication'},
+      {id:'u5s12t9',name:'Network Structure'},
+    ]},
+    {id:'u5s13',title:'Windows Operating Systems',topics:[
+      {id:'u5s13t1',name:'Design Principles'},
+      {id:'u5s13t2',name:'System Components'},
+      {id:'u5s13t3',name:'Terminal Services and Fast User Switching'},
+      {id:'u5s13t4',name:'File System'},
+      {id:'u5s13t5',name:'Networking'},
+    ]},
+    {id:'u5s14',title:'Distributed Systems',topics:[
+      {id:'u5s14t1',name:'Types of Network based Operating Systems'},
+      {id:'u5s14t2',name:'Network Structure'},
+      {id:'u5s14t3',name:'Communication Structure and Protocols'},
+      {id:'u5s14t4',name:'Robustness'},
+      {id:'u5s14t5',name:'Design Issues'},
+      {id:'u5s14t6',name:'Distributed File Systems'},
+    ]},
+  ]},
+  {id:'u6',title:'Unit 6: Software Engineering',icon:'🔧',sections:[
+    {id:'u6s1',title:'Software Process Models',topics:[
+      {id:'u6s1t1',name:'Software Process'},
+      {id:'u6s1t2',name:'Generic Process Model: Framework Activity, Task Set and Process Patterns'},
+      {id:'u6s1t3',name:'Process Lifecycle'},
+      {id:'u6s1t4',name:'Prescriptive Process Models'},
+      {id:'u6s1t5',name:'Project Management'},
+      {id:'u6s1t6',name:'Component Based Development'},
+      {id:'u6s1t7',name:'Aspect-Oriented Software Development'},
+      {id:'u6s1t8',name:'Formal Methods'},
+      {id:'u6s1t9',name:'Agile: Extreme Programming (XP)'},
+      {id:'u6s1t10',name:'Adaptive Software Development'},
+      {id:'u6s1t11',name:'Scrum'},
+      {id:'u6s1t12',name:'Dynamic System Development Model'},
+      {id:'u6s1t13',name:'Feature Driven Development'},
+      {id:'u6s1t14',name:'Crystal'},
+      {id:'u6s1t15',name:'Web Engineering'},
+    ]},
+    {id:'u6s2',title:'Software Requirements',topics:[
+      {id:'u6s2t1',name:'Functional and Non-Functional Requirements'},
+      {id:'u6s2t2',name:'Eliciting Requirements'},
+      {id:'u6s2t3',name:'Developing Use Cases'},
+      {id:'u6s2t4',name:'Requirement Analysis and Modelling'},
+      {id:'u6s2t5',name:'Requirements Review'},
+      {id:'u6s2t6',name:'Software Requirement Specification (SRS) Document'},
+    ]},
+    {id:'u6s3',title:'Software Design',topics:[
+      {id:'u6s3t1',name:'Abstraction'},
+      {id:'u6s3t2',name:'Architecture'},
+      {id:'u6s3t3',name:'Patterns'},
+      {id:'u6s3t4',name:'Separation of Concerns'},
+      {id:'u6s3t5',name:'Modularity'},
+      {id:'u6s3t6',name:'Information Hiding'},
+      {id:'u6s3t7',name:'Functional Independence'},
+      {id:'u6s3t8',name:'Cohesion and Coupling'},
+      {id:'u6s3t9',name:'Object-Oriented Design'},
+      {id:'u6s3t10',name:'Data Design'},
+      {id:'u6s3t11',name:'Architectural Design'},
+      {id:'u6s3t12',name:'User Interface Design'},
+      {id:'u6s3t13',name:'Component Level Design'},
+    ]},
+    {id:'u6s4',title:'Software Quality',topics:[
+      {id:'u6s4t1',name:"McCall's Quality Factors"},
+      {id:'u6s4t2',name:'ISO 9126 Quality Factors'},
+      {id:'u6s4t3',name:'Quality Control'},
+      {id:'u6s4t4',name:'Quality Assurance'},
+      {id:'u6s4t5',name:'Risk Management'},
+      {id:'u6s4t6',name:'Risk Mitigation, Monitoring and Management (RMMM)'},
+      {id:'u6s4t7',name:'Software Reliability'},
+    ]},
+    {id:'u6s5',title:'Estimation and Scheduling of Software Projects',topics:[
+      {id:'u6s5t1',name:'Software Sizing'},
+      {id:'u6s5t2',name:'LOC and FP based Estimations'},
+      {id:'u6s5t3',name:'Estimating Cost and Effort'},
+      {id:'u6s5t4',name:'Estimation Models'},
+      {id:'u6s5t5',name:'Constructive Cost Model (COCOMO)'},
+      {id:'u6s5t6',name:'Project Scheduling and Staffing'},
+      {id:'u6s5t7',name:'Time-line Charts'},
+    ]},
+    {id:'u6s6',title:'Software Testing',topics:[
+      {id:'u6s6t1',name:'Verification and Validation'},
+      {id:'u6s6t2',name:'Error, Fault, Bug and Failure'},
+      {id:'u6s6t3',name:'Unit and Integration Testing'},
+      {id:'u6s6t4',name:'White-box and Black-box Testing'},
+      {id:'u6s6t5',name:'Basis Path Testing'},
+      {id:'u6s6t6',name:'Control Structure Testing'},
+      {id:'u6s6t7',name:'Deriving Test Cases'},
+      {id:'u6s6t8',name:'Alpha and Beta Testing'},
+      {id:'u6s6t9',name:'Regression Testing'},
+      {id:'u6s6t10',name:'Performance Testing'},
+      {id:'u6s6t11',name:'Stress Testing'},
+    ]},
+    {id:'u6s7',title:'Software Configuration Management',topics:[
+      {id:'u6s7t1',name:'Change Control and Version Control'},
+      {id:'u6s7t2',name:'Software Reuse'},
+      {id:'u6s7t3',name:'Software Re-engineering'},
+      {id:'u6s7t4',name:'Reverse Engineering'},
+    ]},
+  ]},
+  {id:'u7',title:'Unit 7: Data Structures and Algorithms',icon:'🌲',sections:[
+    {id:'u7s1',title:'Data Structures',topics:[
+      {id:'u7s1t1',name:'Arrays and their Applications'},
+      {id:'u7s1t2',name:'Sparse Matrix'},
+      {id:'u7s1t3',name:'Stacks'},
+      {id:'u7s1t4',name:'Queues'},
+      {id:'u7s1t5',name:'Priority Queues'},
+      {id:'u7s1t6',name:'Linked Lists'},
+      {id:'u7s1t7',name:'Trees'},
+      {id:'u7s1t8',name:'Forest'},
+      {id:'u7s1t9',name:'Binary Tree'},
+      {id:'u7s1t10',name:'Threaded Binary Tree'},
+      {id:'u7s1t11',name:'Binary Search Tree'},
+      {id:'u7s1t12',name:'AVL Tree'},
+      {id:'u7s1t13',name:'B Tree'},
+      {id:'u7s1t14',name:'B+ Tree'},
+      {id:'u7s1t15',name:'B* Tree'},
+      {id:'u7s1t16',name:'Data Structure for Sets'},
+      {id:'u7s1t17',name:'Graphs'},
+      {id:'u7s1t18',name:'Sorting and Searching Algorithms'},
+      {id:'u7s1t19',name:'Hashing'},
+    ]},
+    {id:'u7s2',title:'Performance Analysis of Algorithms and Recurrences',topics:[
+      {id:'u7s2t1',name:'Time and Space Complexities'},
+      {id:'u7s2t2',name:'Asymptotic Notation'},
+      {id:'u7s2t3',name:'Recurrence Relations'},
+    ]},
+    {id:'u7s3',title:'Design Techniques',topics:[
+      {id:'u7s3t1',name:'Divide and Conquer'},
+      {id:'u7s3t2',name:'Dynamic Programming'},
+      {id:'u7s3t3',name:'Greedy Algorithms'},
+      {id:'u7s3t4',name:'Backtracking'},
+      {id:'u7s3t5',name:'Branch and Bound'},
+    ]},
+    {id:'u7s4',title:'Lower Bound Theory',topics:[
+      {id:'u7s4t1',name:'Comparison Trees'},
+      {id:'u7s4t2',name:'Lower Bounds through Reductions'},
+    ]},
+    {id:'u7s5',title:'Graph Algorithms',topics:[
+      {id:'u7s5t1',name:'Breadth-First Search'},
+      {id:'u7s5t2',name:'Depth-First Search'},
+      {id:'u7s5t3',name:'Shortest Paths'},
+      {id:'u7s5t4',name:'Maximum Flow'},
+      {id:'u7s5t5',name:'Minimum Spanning Trees'},
+    ]},
+    {id:'u7s6',title:'Complexity Theory',topics:[
+      {id:'u7s6t1',name:'P and NP Class Problems'},
+      {id:'u7s6t2',name:'NP-completeness and Reducibility'},
+    ]},
+    {id:'u7s7',title:'Selected Topics',topics:[
+      {id:'u7s7t1',name:'Number Theoretic Algorithms'},
+      {id:'u7s7t2',name:'Polynomial Arithmetic'},
+      {id:'u7s7t3',name:'Fast Fourier Transform'},
+      {id:'u7s7t4',name:'String Matching Algorithms'},
+    ]},
+    {id:'u7s8',title:'Advanced Algorithms',topics:[
+      {id:'u7s8t1',name:'Parallel Algorithms for Sorting, Searching and Merging'},
+      {id:'u7s8t2',name:'Approximation Algorithms'},
+      {id:'u7s8t3',name:'Randomized Algorithms'},
+    ]},
+  ]},
+  {id:'u8',title:'Unit 8: Theory of Computation and Compilers',icon:'🤖',sections:[
+    {id:'u8s1',title:'Theory of Computation',topics:[
+      {id:'u8s1t1',name:'Formal Language'},
+      {id:'u8s1t2',name:'Non-Computational Problems'},
+      {id:'u8s1t3',name:'Diagonal Argument'},
+      {id:'u8s1t4',name:"Russell's Paradox"},
+    ]},
+    {id:'u8s2',title:'Regular Language Models',topics:[
+      {id:'u8s2t1',name:'Deterministic Finite Automaton (DFA)'},
+      {id:'u8s2t2',name:'Non-Deterministic Finite Automaton (NDFA)'},
+      {id:'u8s2t3',name:'Equivalence of DFA and NDFA'},
+      {id:'u8s2t4',name:'Regular Languages'},
+      {id:'u8s2t5',name:'Regular Grammars'},
+      {id:'u8s2t6',name:'Regular Expressions'},
+      {id:'u8s2t7',name:'Properties of Regular Language'},
+      {id:'u8s2t8',name:'Pumping Lemma'},
+      {id:'u8s2t9',name:'Non-Regular Languages'},
+      {id:'u8s2t10',name:'Lexical Analysis'},
+    ]},
+    {id:'u8s3',title:'Context Free Language',topics:[
+      {id:'u8s3t1',name:'Pushdown Automaton (PDA)'},
+      {id:'u8s3t2',name:'Non-Deterministic Pushdown Automaton (NPDA)'},
+      {id:'u8s3t3',name:'Context Free Grammar'},
+      {id:'u8s3t4',name:'Chomsky Normal Form'},
+      {id:'u8s3t5',name:'Greibach Normal Form'},
+      {id:'u8s3t6',name:'Ambiguity'},
+      {id:'u8s3t7',name:'Parse Tree Representation of Derivation Trees'},
+      {id:'u8s3t8',name:"Equivalence of PDA's and Context Free Grammars"},
+      {id:'u8s3t9',name:'Properties of Context Free Language'},
+    ]},
+    {id:'u8s4',title:'Turing Machines (TM)',topics:[
+      {id:'u8s4t1',name:'Standard Turing Machine and its Variations'},
+      {id:'u8s4t2',name:'Universal Turing Machines'},
+      {id:'u8s4t3',name:'Models of Computation and Church-Turing Thesis'},
+      {id:'u8s4t4',name:'Recursive and Recursively-Enumerable Languages'},
+      {id:'u8s4t5',name:'Context-Sensitive Languages'},
+      {id:'u8s4t6',name:'Unrestricted Grammars'},
+      {id:'u8s4t7',name:'Chomsky Hierarchy of Languages'},
+      {id:'u8s4t8',name:'Construction of TM for Simple Problems'},
+    ]},
+    {id:'u8s5',title:'Unsolvable Problems and Computational Complexity',topics:[
+      {id:'u8s5t1',name:'Unsolvable Problem'},
+      {id:'u8s5t2',name:'Halting Problem'},
+      {id:'u8s5t3',name:'Post Correspondence Problem'},
+      {id:'u8s5t4',name:'Unsolvable Problems for Context-Free Languages'},
+      {id:'u8s5t5',name:'Measuring and Classifying Complexity'},
+      {id:'u8s5t6',name:'Tractable and Intractable Problems'},
+    ]},
+    {id:'u8s6',title:'Syntax Analysis',topics:[
+      {id:'u8s6t1',name:'Associativity'},
+      {id:'u8s6t2',name:'Precedence'},
+      {id:'u8s6t3',name:'Grammar Transformations'},
+      {id:'u8s6t4',name:'Top Down Parsing'},
+      {id:'u8s6t5',name:'Recursive Descent Predictive Parsing'},
+      {id:'u8s6t6',name:'LL(1) Parsing'},
+      {id:'u8s6t7',name:'Bottom up Parsing'},
+      {id:'u8s6t8',name:'LR Parser'},
+      {id:'u8s6t9',name:'LALR(1) Parser'},
+    ]},
+    {id:'u8s7',title:'Semantic Analysis',topics:[
+      {id:'u8s7t1',name:'Attribute Grammar'},
+      {id:'u8s7t2',name:'Syntax Directed Definitions'},
+      {id:'u8s7t3',name:'Inherited and Synthesized Attributes'},
+      {id:'u8s7t4',name:'Dependency Graph'},
+      {id:'u8s7t5',name:'Evaluation Order'},
+      {id:'u8s7t6',name:'S-attributed and L-attributed Definitions'},
+      {id:'u8s7t7',name:'Type-Checking'},
+    ]},
+    {id:'u8s8',title:'Run Time System',topics:[
+      {id:'u8s8t1',name:'Storage Organization'},
+      {id:'u8s8t2',name:'Activation Tree'},
+      {id:'u8s8t3',name:'Activation Record'},
+      {id:'u8s8t4',name:'Stack Allocation of Activation Records'},
+      {id:'u8s8t5',name:'Parameter Passing Mechanisms'},
+      {id:'u8s8t6',name:'Symbol Table'},
+    ]},
+    {id:'u8s9',title:'Intermediate Code Generation',topics:[
+      {id:'u8s9t1',name:'Intermediate Representations'},
+      {id:'u8s9t2',name:'Translation of Declarations'},
+      {id:'u8s9t3',name:'Translation of Assignments'},
+      {id:'u8s9t4',name:'Translation of Control Flow'},
+      {id:'u8s9t5',name:'Translation of Boolean Expressions'},
+      {id:'u8s9t6',name:'Translation of Procedure Calls'},
+    ]},
+    {id:'u8s10',title:'Code Generation and Code Optimization',topics:[
+      {id:'u8s10t1',name:'Control-flow Analysis'},
+      {id:'u8s10t2',name:'Data-flow Analysis'},
+      {id:'u8s10t3',name:'Local Optimization'},
+      {id:'u8s10t4',name:'Global Optimization'},
+      {id:'u8s10t5',name:'Loop Optimization'},
+      {id:'u8s10t6',name:'Peep-Hole Optimization'},
+      {id:'u8s10t7',name:'Instruction Scheduling'},
+    ]},
+  ]},
+  {id:'u9',title:'Unit 9: Data Communication and Computer Networks',icon:'🌐',sections:[
+    {id:'u9s1',title:'Data Communication',topics:[
+      {id:'u9s1t1',name:'Components of a Data Communication System'},
+      {id:'u9s1t2',name:'Simplex, Half-Duplex and Duplex Modes of Communication'},
+      {id:'u9s1t3',name:'Analog and Digital Signals'},
+      {id:'u9s1t4',name:'Noiseless and Noisy Channels'},
+      {id:'u9s1t5',name:'Bandwidth, Throughput and Latency'},
+      {id:'u9s1t6',name:'Digital and Analog Transmission'},
+      {id:'u9s1t7',name:'Data Encoding and Modulation Techniques'},
+      {id:'u9s1t8',name:'Broadband and Baseband Transmission'},
+      {id:'u9s1t9',name:'Multiplexing'},
+      {id:'u9s1t10',name:'Transmission Media'},
+      {id:'u9s1t11',name:'Transmission Errors'},
+      {id:'u9s1t12',name:'Error Handling Mechanisms'},
+    ]},
+    {id:'u9s2',title:'Computer Networks',topics:[
+      {id:'u9s2t1',name:'Network Topologies'},
+      {id:'u9s2t2',name:'Local Area Networks'},
+      {id:'u9s2t3',name:'Metropolitan Area Networks'},
+      {id:'u9s2t4',name:'Wide Area Network'},
+      {id:'u9s2t5',name:'Wireless Networks'},
+      {id:'u9s2t6',name:'Internet'},
+    ]},
+    {id:'u9s3',title:'Network Models',topics:[
+      {id:'u9s3t1',name:'Layered Architecture'},
+      {id:'u9s3t2',name:'OSI Reference Model and its Protocols'},
+      {id:'u9s3t3',name:'TCP/IP Protocol Suite'},
+      {id:'u9s3t4',name:'Physical, Logical, Port and Specific Addresses'},
+      {id:'u9s3t5',name:'Switching Techniques'},
+    ]},
+    {id:'u9s4',title:'Functions of OSI and TCP/IP Layers',topics:[
+      {id:'u9s4t1',name:'Framing'},
+      {id:'u9s4t2',name:'Error Detection and Correction'},
+      {id:'u9s4t3',name:'Flow and Error Control'},
+      {id:'u9s4t4',name:'Sliding Window Protocol'},
+      {id:'u9s4t5',name:'HDLC'},
+      {id:'u9s4t6',name:'Multiple Access: CSMA/CD and CSMA/CA'},
+      {id:'u9s4t7',name:'Reservation, Polling and Token Passing'},
+      {id:'u9s4t8',name:'FDMA, CDMA and TDMA'},
+      {id:'u9s4t9',name:'Network Devices'},
+      {id:'u9s4t10',name:'Backbone Networks'},
+      {id:'u9s4t11',name:'Virtual LANs'},
+    ]},
+    {id:'u9s5',title:'IPv4 and IPv6',topics:[
+      {id:'u9s5t1',name:'IPv4 Structure and Address Space'},
+      {id:'u9s5t2',name:'Classful and Classless Addressing'},
+      {id:'u9s5t3',name:'Datagram, Fragmentation and Checksum'},
+      {id:'u9s5t4',name:'IPv6 Packet Format'},
+      {id:'u9s5t5',name:'Mapping Logical to Physical Address (ARP)'},
+      {id:'u9s5t6',name:'Direct and Indirect Network Layer Delivery'},
+      {id:'u9s5t7',name:'Routing Algorithms'},
+      {id:'u9s5t8',name:'TCP, UDP and SCTP Protocols'},
+      {id:'u9s5t9',name:'Flow Control, Error Control and Congestion Control in TCP and SCTP'},
+    ]},
+    {id:'u9s6',title:'World Wide Web (WWW)',topics:[
+      {id:'u9s6t1',name:'Uniform Resource Locator (URL)'},
+      {id:'u9s6t2',name:'Domain Name Service (DNS)'},
+      {id:'u9s6t3',name:'Resolution: Mapping Names to Addresses and Addresses to Names'},
+      {id:'u9s6t4',name:'Electronic Mail Architecture'},
+      {id:'u9s6t5',name:'SMTP, POP and IMAP'},
+      {id:'u9s6t6',name:'TELNET and FTP'},
+    ]},
+    {id:'u9s7',title:'Network Security',topics:[
+      {id:'u9s7t1',name:'Malwares'},
+      {id:'u9s7t2',name:'Cryptography and Steganography'},
+      {id:'u9s7t3',name:'Secret-Key Algorithms'},
+      {id:'u9s7t4',name:'Public-Key Algorithms'},
+      {id:'u9s7t5',name:'Digital Signature'},
+      {id:'u9s7t6',name:'Virtual Private Networks'},
+      {id:'u9s7t7',name:'Firewalls'},
+    ]},
+    {id:'u9s8',title:'Mobile Technology',topics:[
+      {id:'u9s8t1',name:'GSM and CDMA'},
+      {id:'u9s8t2',name:'Services and Architecture of GSM and Mobile Computing'},
+      {id:'u9s8t3',name:'Middleware and Gateway for Mobile Computing'},
+      {id:'u9s8t4',name:'Mobile IP and Mobile Communication Protocol'},
+      {id:'u9s8t5',name:'Communication Satellites'},
+      {id:'u9s8t6',name:'Wireless Networks and Topologies'},
+      {id:'u9s8t7',name:'Cellular Topology'},
+      {id:'u9s8t8',name:'Mobile Adhoc Networks'},
+      {id:'u9s8t9',name:'Wireless Transmission and Wireless LANs'},
+      {id:'u9s8t10',name:'Wireless Geolocation Systems'},
+      {id:'u9s8t11',name:'GPRS and SMS'},
+    ]},
+    {id:'u9s9',title:'Cloud Computing and IoT',topics:[
+      {id:'u9s9t1',name:'SaaS, PaaS, IaaS'},
+      {id:'u9s9t2',name:'Public and Private Cloud'},
+      {id:'u9s9t3',name:'Virtualization'},
+      {id:'u9s9t4',name:'Virtual Server'},
+      {id:'u9s9t5',name:'Cloud Storage'},
+      {id:'u9s9t6',name:'Database Storage'},
+      {id:'u9s9t7',name:'Resource Management'},
+      {id:'u9s9t8',name:'Service Level Agreement'},
+      {id:'u9s9t9',name:'Basics of IoT'},
+    ]},
+  ]},
+  {id:'u10',title:'Unit 10: Artificial Intelligence (AI)',icon:'🧠',sections:[
+    {id:'u10s1',title:'Approaches to AI',topics:[
+      {id:'u10s1t1',name:'Turing Test and Rational Agent Approaches'},
+      {id:'u10s1t2',name:'State Space Representation of Problems'},
+      {id:'u10s1t3',name:'Heuristic Search Techniques'},
+      {id:'u10s1t4',name:'Game Playing'},
+      {id:'u10s1t5',name:'Min-Max Search'},
+      {id:'u10s1t6',name:'Alpha Beta Cutoff Procedures'},
+    ]},
+    {id:'u10s2',title:'Knowledge Representation',topics:[
+      {id:'u10s2t1',name:'Logic'},
+      {id:'u10s2t2',name:'Semantic Networks'},
+      {id:'u10s2t3',name:'Frames'},
+      {id:'u10s2t4',name:'Rules'},
+      {id:'u10s2t5',name:'Scripts'},
+      {id:'u10s2t6',name:'Conceptual Dependency'},
+      {id:'u10s2t7',name:'Ontologies'},
+      {id:'u10s2t8',name:'Expert Systems'},
+      {id:'u10s2t9',name:'Handling Uncertainty in Knowledge'},
+    ]},
+    {id:'u10s3',title:'Planning',topics:[
+      {id:'u10s3t1',name:'Components of a Planning System'},
+      {id:'u10s3t2',name:'Linear and Non Linear Planning'},
+      {id:'u10s3t3',name:'Goal Stack Planning'},
+      {id:'u10s3t4',name:'Hierarchical Planning'},
+      {id:'u10s3t5',name:'STRIPS'},
+      {id:'u10s3t6',name:'Partial Order Planning'},
+    ]},
+    {id:'u10s4',title:'Natural Language Processing',topics:[
+      {id:'u10s4t1',name:'Grammar and Language'},
+      {id:'u10s4t2',name:'Parsing Techniques'},
+      {id:'u10s4t3',name:'Semantic Analysis'},
+      {id:'u10s4t4',name:'Pragmatics'},
+    ]},
+    {id:'u10s5',title:'Multi Agent Systems',topics:[
+      {id:'u10s5t1',name:'Agents and Objects'},
+      {id:'u10s5t2',name:'Agents and Expert Systems'},
+      {id:'u10s5t3',name:'Generic Structure of Multiagent System'},
+      {id:'u10s5t4',name:'Semantic Web'},
+      {id:'u10s5t5',name:'Agent Communication'},
+      {id:'u10s5t6',name:'Knowledge Sharing using Ontologies'},
+      {id:'u10s5t7',name:'Agent Development Tools'},
+    ]},
+    {id:'u10s6',title:'Fuzzy Sets',topics:[
+      {id:'u10s6t1',name:'Notion of Fuzziness'},
+      {id:'u10s6t2',name:'Membership Functions'},
+      {id:'u10s6t3',name:'Fuzzification and Defuzzification'},
+      {id:'u10s6t4',name:'Operations on Fuzzy Sets'},
+      {id:'u10s6t5',name:'Fuzzy Functions and Linguistic Variables'},
+      {id:'u10s6t6',name:'Fuzzy Relations'},
+      {id:'u10s6t7',name:'Fuzzy Rules and Fuzzy Inference'},
+      {id:'u10s6t8',name:'Fuzzy Control System'},
+      {id:'u10s6t9',name:'Fuzzy Rule Based Systems'},
+    ]},
+    {id:'u10s7',title:'Genetic Algorithms (GA)',topics:[
+      {id:'u10s7t1',name:'Encoding Strategies'},
+      {id:'u10s7t2',name:'Genetic Operators'},
+      {id:'u10s7t3',name:'Fitness Functions and GA Cycle'},
+      {id:'u10s7t4',name:'Problem Solving using GA'},
+    ]},
+    {id:'u10s8',title:'Artificial Neural Networks (ANN)',topics:[
+      {id:'u10s8t1',name:'Supervised Learning'},
+      {id:'u10s8t2',name:'Unsupervised Learning'},
+      {id:'u10s8t3',name:'Reinforcement Learning'},
+      {id:'u10s8t4',name:'Single Perceptron'},
+      {id:'u10s8t5',name:'Multi Layer Perceptron'},
+      {id:'u10s8t6',name:'Self Organizing Maps'},
+      {id:'u10s8t7',name:'Hopfield Network'},
+    ]},
+  ]},
+];
+
+// ================================================================
+// STATE
+// ================================================================
+let completed = new Set(JSON.parse(localStorage.getItem('net_completed')||'[]'));
+let serverIP  = localStorage.getItem('net_server_ip')||'';
+
+// ================================================================
+// RENDER
+// ================================================================
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML='';
+  SYLLABUS.forEach(unit=>{
+    const allT=unit.sections.flatMap(s=>s.topics);
+    const done=allT.filter(t=>completed.has(t.id)).length;
+    const total=allT.length;
+    const pct=total?Math.round(done/total*100):0;
+    const bc=pct===100?'complete':pct>0?'inprogress':'';
+    const bt=pct===100?'✓ Done':`${done}/${total}`;
+    const card=document.createElement('div');
+    card.className='unit-card';
+    card.id=`unit-${unit.id}`;
+    card.innerHTML=`
+      <div class="unit-header" onclick="toggleUnit('${unit.id}')">
+        <div class="unit-header-left">
+          <span class="unit-icon">${unit.icon}</span>
+          <span class="unit-title">${unit.title}</span>
+        </div>
+        <div class="unit-meta">
+          <span class="unit-badge ${bc}">${bt}</span>
+          <span class="chevron">▶</span>
+        </div>
+      </div>
+      <div class="unit-pb"><div class="unit-pf" id="upf-${unit.id}" style="width:${pct}%"></div></div>
+      <div class="unit-body" id="body-${unit.id}">
+        ${unit.sections.map(s=>renderSection(s)).join('')}
+      </div>`;
+    app.appendChild(card);
+  });
+  updateOverall();
+}
+
+function renderSection(s){
+  const done=s.topics.filter(t=>completed.has(t.id)).length;
+  const total=s.topics.length;
+  const allDone=done===total;
+  return `<div class="section" id="sec-${s.id}">
+    <div class="section-header">
+      <span>${s.title} <span class="section-count" id="sc-${s.id}">(${done}/${total})</span></span>
+      <button class="section-check-all" id="sca-${s.id}" onclick="toggleSection('${s.id}',event)">${allDone?'Uncheck all':'Check all'}</button>
+    </div>
+    <div class="topics-list">${s.topics.map(t=>renderTopic(t)).join('')}</div>
+  </div>`;
+}
+
+function renderTopic(t){
+  const done=completed.has(t.id);
+  return `<div class="topic-item${done?' done':''}" id="ti-${t.id}" onclick="toggleTopic('${t.id}')">
+    <div class="topic-cb"><span class="ck">✓</span></div>
+    <span class="topic-name">${t.name}</span>
+  </div>`;
+}
+
+// ================================================================
+// TOGGLE ACTIONS
+// ================================================================
+function toggleUnit(uid){
+  document.getElementById(`unit-${uid}`).classList.toggle('expanded');
+}
+
+function toggleTopic(tid){
+  completed.has(tid)?completed.delete(tid):completed.add(tid);
+  const el=document.getElementById(`ti-${tid}`);
+  el.classList.toggle('done',completed.has(tid));
+  saveLocal();
+  // find parent section and update counts
+  const sec=SYLLABUS.flatMap(u=>u.sections).find(s=>s.topics.some(t=>t.id===tid));
+  if(sec) updateSectionUI(sec);
+  const unit=SYLLABUS.find(u=>u.sections.some(s=>s.id===sec?.id));
+  if(unit) updateUnitUI(unit);
+  updateOverall();
+}
+
+function toggleSection(sid,e){
+  e.stopPropagation();
+  const sec=SYLLABUS.flatMap(u=>u.sections).find(s=>s.id===sid);
+  if(!sec)return;
+  const allDone=sec.topics.every(t=>completed.has(t.id));
+  sec.topics.forEach(t=>{
+    allDone?completed.delete(t.id):completed.add(t.id);
+    const el=document.getElementById(`ti-${t.id}`);
+    if(el)el.classList.toggle('done',completed.has(t.id));
+  });
+  saveLocal();
+  updateSectionUI(sec);
+  const unit=SYLLABUS.find(u=>u.sections.some(s=>s.id===sid));
+  if(unit)updateUnitUI(unit);
+  updateOverall();
+}
+
+function updateSectionUI(sec){
+  const done=sec.topics.filter(t=>completed.has(t.id)).length;
+  const total=sec.topics.length;
+  const sc=document.getElementById(`sc-${sec.id}`);
+  if(sc)sc.textContent=`(${done}/${total})`;
+  const sca=document.getElementById(`sca-${sec.id}`);
+  if(sca)sca.textContent=done===total?'Uncheck all':'Check all';
+}
+
+function updateUnitUI(unit){
+  const allT=unit.sections.flatMap(s=>s.topics);
+  const done=allT.filter(t=>completed.has(t.id)).length;
+  const total=allT.length;
+  const pct=total?Math.round(done/total*100):0;
+  const pf=document.getElementById(`upf-${unit.id}`);
+  if(pf)pf.style.width=`${pct}%`;
+  const badge=document.querySelector(`#unit-${unit.id} .unit-badge`);
+  if(badge){
+    badge.textContent=pct===100?'✓ Done':`${done}/${total}`;
+    badge.className=`unit-badge${pct===100?' complete':pct>0?' inprogress':''}`;
+  }
+}
+
+function updateOverall(){
+  const allT=SYLLABUS.flatMap(u=>u.sections.flatMap(s=>s.topics));
+  const done=allT.filter(t=>completed.has(t.id)).length;
+  const total=allT.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('overall-fill').style.width=`${pct}%`;
+  document.getElementById('overall-text').textContent=`${done} / ${total} (${pct}%)`;
+}
+
+// ================================================================
+// SEARCH
+// ================================================================
+function filterTopics(q){
+  q=q.toLowerCase().trim();
+  if(!q){
+    document.querySelectorAll('.topic-item').forEach(el=>el.classList.remove('hidden'));
+    document.querySelectorAll('.unit-card.expanded').forEach(c=>c.classList.remove('expanded'));
+    return;
+  }
+  SYLLABUS.forEach(unit=>{
+    let hit=false;
+    unit.sections.forEach(sec=>{
+      sec.topics.forEach(t=>{
+        const el=document.getElementById(`ti-${t.id}`);
+        if(!el)return;
+        const m=t.name.toLowerCase().includes(q);
+        el.classList.toggle('hidden',!m);
+        if(m)hit=true;
+      });
+    });
+    const card=document.getElementById(`unit-${unit.id}`);
+    if(card)card.classList.toggle('expanded',hit);
+  });
+}
+
+// ================================================================
+// STORAGE
+// ================================================================
+function saveLocal(){
+  localStorage.setItem('net_completed',JSON.stringify([...completed]));
+}
+
+// ================================================================
+// SETTINGS
+// ================================================================
+function openSettings(){
+  document.getElementById('server-ip').value=serverIP;
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function maybeClose(e){
+  if(e.target===document.getElementById('settings-modal'))closeSettings();
+}
+function saveSettings(){
+  serverIP=document.getElementById('server-ip').value.trim();
+  localStorage.setItem('net_server_ip',serverIP);
+  closeSettings();
+  if(serverIP)syncNow();
+}
+
+// ================================================================
+// SYNC
+// ================================================================
+async function syncNow(){
+  if(!serverIP){openSettings();return;}
+  const btn=document.getElementById('sync-btn');
+  btn.textContent='⏳ Syncing...';
+  btn.disabled=true;
+  try{
+    const res=await fetch(`http://${serverIP}/sync`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({completed:[...completed]})
+    });
+    if(!res.ok)throw new Error('Server error');
+    const data=await res.json();
+    if(data.completed){
+      data.completed.forEach(id=>completed.add(id));
+      saveLocal();
+      render();
+    }
+    showToast(`✅ Synced! ${data.completed.length} topics merged`,'ok');
+  }catch(err){
+    showToast(`❌ Sync failed. Check server IP: ${serverIP}`,'err');
+  }finally{
+    btn.textContent='🔄 Sync';
+    btn.disabled=false;
+  }
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=`toast show ${type}`;
+  setTimeout(()=>t.className='toast',3000);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+render();
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
